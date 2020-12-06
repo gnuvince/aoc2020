@@ -1,43 +1,49 @@
-use std::io::{self, BufRead};
+use std::io;
+
+fn part1(g: &Vec<Vec<String>>) -> usize {
+    let mut sum: usize = 0;
+    let mut counts: [u8; 26] = [0; 26];
+
+    for group in g {
+        for line in group {
+            for b in line.bytes() {
+                counts[(b - b'a') as usize] = 1;
+            }
+        }
+        sum += counts.iter().sum::<u8>() as usize;
+        counts = [0; 26];
+    }
+
+    return sum;
+}
+
+fn part2(g: &Vec<Vec<String>>) -> usize {
+    let mut sum: usize = 0;
+    let mut counts: [u8; 26] = [0; 26];
+
+    for group in g {
+        for line in group {
+            for b in line.bytes() {
+                counts[(b - b'a') as usize] += 1;
+            }
+        }
+        for x in &counts[..] {
+            sum += (*x as usize == group.len()) as usize;
+        }
+        counts = [0; 26];
+    }
+
+    return sum;
+}
 
 fn main() -> anyhow::Result<()> {
     let stdin = io::stdin();
     let stdin = stdin.lock();
 
-    let mut p1_sum: usize = 0;
-    let mut p1_counts: [u8; 26] = [0; 26];
+    let groups = aoc2020::read_groups_of_lines(stdin)?;
 
-    let mut num_members: usize = 0;
-    let mut p2_sum: usize = 0;
-    let mut p2_counts: [u8; 26] = [0; 26];
-
-    for line in stdin.lines() {
-        let line = line?;
-
-        if line.is_empty() {
-            p1_sum += p1_counts.iter().sum::<u8>() as usize;
-            for x in &p2_counts[..] {
-                p2_sum += (*x as usize == num_members) as usize;
-            }
-
-            p1_counts = [0; 26];
-            p2_counts = [0; 26];
-            num_members = 0;
-        } else {
-            num_members += 1;
-            for b in line.bytes() {
-                p1_counts[(b - b'a') as usize] = 1;
-                p2_counts[(b - b'a') as usize] += 1;
-            }
-        }
-    }
-    p1_sum += p1_counts.iter().sum::<u8>() as usize;
-    for x in &p2_counts[..] {
-        p2_sum += (*x as usize == num_members) as usize;
-    }
-
-    println!("part 1: {}", p1_sum);
-    println!("part 2: {}", p2_sum);
+    println!("part 1: {}", part1(&groups));
+    println!("part 2: {}", part2(&groups));
 
     return Ok(());
 }
