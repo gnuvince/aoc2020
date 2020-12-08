@@ -7,6 +7,17 @@ enum InstrCode {
     Jmp,
 }
 
+impl InstrCode {
+    fn flip(&self) -> Self {
+        use InstrCode::*;
+        match *self {
+            Nop => Jmp,
+            Jmp => Nop,
+            Acc => Acc,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 struct Instr {
     code: InstrCode,
@@ -36,55 +47,28 @@ impl Cpu {
             }
         }
     }
+
+    fn run(&mut self) -> (isize, bool) {
+        let mut seen: Vec<bool> = vec![false; self.instrs.len()];
+        while (self.pc as usize) < self.instrs.len() && !seen[self.pc as usize] {
+            seen[self.pc as usize] = true;
+            self.step();
+        }
+        return (self.acc, (self.pc as usize) < self.instrs.len());
+    }
 }
 
 fn part1(cpu: &mut Cpu) -> isize {
-    let mut seen: Vec<bool> = vec![false; cpu.instrs.len()];
-    while !seen[cpu.pc as usize] {
-        seen[cpu.pc as usize] = true;
-        cpu.step();
-    }
-    return cpu.acc;
+    return cpu.run().0;
 }
 
 fn part2(original_cpu: &Cpu) -> anyhow::Result<isize> {
-    fn run(cpu: &mut Cpu) -> (isize, bool) {
-        let mut seen: Vec<bool> = vec![false; cpu.instrs.len()];
-        let mut inf_loop = false;
-        loop {
-            if cpu.pc as usize >= cpu.instrs.len() {
-                break;
-            }
-            if seen[cpu.pc as usize] {
-                inf_loop = true;
-                break;
-            }
-            seen[cpu.pc as usize] = true;
-            cpu.step();
-        }
-        return (cpu.acc, inf_loop);
-    }
-
     for i in 0..original_cpu.instrs.len() {
         match original_cpu.instrs[i].code {
-            InstrCode::Nop => {
+            InstrCode::Nop | InstrCode::Jmp => {
                 let mut cpu = original_cpu.clone();
-                cpu.instrs[i] = Instr {
-                    code: InstrCode::Jmp,
-                    ..cpu.instrs[i]
-                };
-                let (res, inf_loop) = run(&mut cpu);
-                if !inf_loop {
-                    return Ok(res);
-                }
-            }
-            InstrCode::Jmp => {
-                let mut cpu = original_cpu.clone();
-                cpu.instrs[i] = Instr {
-                    code: InstrCode::Nop,
-                    ..cpu.instrs[i]
-                };
-                let (res, inf_loop) = run(&mut cpu);
+                cpu.instrs[i].code = cpu.instrs[i].code.flip();
+                let (res, inf_loop) = cpu.run();
                 if !inf_loop {
                     return Ok(res);
                 }
