@@ -19,6 +19,15 @@ pub fn read_lines<R: io::BufRead>(r: R) -> anyhow::Result<Vec<Vec<u8>>> {
     return Ok(lines);
 }
 
+pub fn read_lines_string<R: io::BufRead>(r: R) -> anyhow::Result<Vec<String>> {
+    let mut lines: Vec<String> = Vec::new();
+    for line in r.lines() {
+        let line = line?;
+        lines.push(line);
+    }
+    return Ok(lines);
+}
+
 pub fn read_groups_of_lines<R: io::BufRead>(r: R) -> anyhow::Result<Vec<Vec<String>>> {
     let mut groups: Vec<Vec<String>> = Vec::new();
     let mut lines: Vec<String> = Vec::new();
