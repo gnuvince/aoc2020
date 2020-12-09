@@ -10,6 +10,16 @@ pub fn read_numbers<R: io::BufRead>(r: R) -> anyhow::Result<Vec<i32>> {
     return Ok(numbers);
 }
 
+pub fn read_i64s<R: io::BufRead>(r: R) -> anyhow::Result<Vec<i64>> {
+    let mut numbers: Vec<i64> = Vec::with_capacity(4096);
+    for line in r.lines() {
+        let line = line?;
+        let n: i64 = line.parse::<i64>()?;
+        numbers.push(n);
+    }
+    return Ok(numbers);
+}
+
 pub fn read_lines<R: io::BufRead>(r: R) -> anyhow::Result<Vec<Vec<u8>>> {
     let mut lines: Vec<Vec<u8>> = Vec::new();
     for line in r.lines() {
