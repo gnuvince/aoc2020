@@ -27,26 +27,21 @@ fn part2(lines: &[String]) -> anyhow::Result<i64> {
         busids.push((i as i64, id.parse::<i64>()?));
     }
 
-    let mut t: i64 = 0;
+    let mut t: i64 = 0; // The time to test
+    let mut jump: i64 = 1; // How much we should jump ahead to test again
     let mut iters: i64 = 0; // just for debugging
+    let mut okay: usize = 0; // How many buses we've correctly slotted
 
-    loop {
+    while okay < busids.len() {
         iters += 1;
-        let mut jump: i64 = 1;
-        let mut okay: usize = 0;
-        for (m, b) in &busids {
+        for (m, b) in &busids[okay..] {
             if (t + m) % b == 0 {
                 jump *= b;
+                okay += 1;
             } else {
+                t += jump;
                 break;
             }
-            okay += 1;
-        }
-
-        if okay == busids.len() {
-            break;
-        } else {
-            t += jump;
         }
     }
 
