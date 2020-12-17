@@ -8,13 +8,13 @@ fn parts(turns: usize, nums: &Vec<usize>) -> usize {
     }
     let mut prev: usize = nums[nums.len() - 1];
 
-    for t in 1 + nums.len()..=turns {
+    for t in nums.len()..turns {
         if let Some(x) = cache.get(&prev) {
             let p = prev;
-            prev = (t - 1) - x;
-            cache.insert(p, t - 1);
+            prev = t - x;
+            cache.insert(p, t);
         } else {
-            cache.insert(prev, t - 1);
+            cache.insert(prev, t);
             prev = 0;
         }
     }
