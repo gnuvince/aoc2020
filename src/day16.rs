@@ -75,32 +75,13 @@ fn parse_named_rules(
     return Ok(rules);
 }
 
-fn bt(
-    x: usize,
-    cols: usize,
-    t: &Vec<Vec<u64>>,
-    r: &Vec<(String, RangeInclusive<u64>, RangeInclusive<u64>)>,
-    acc: &mut Vec<usize>,
-    choices: &Vec<Vec<usize>>,
-) -> anyhow::Result<()> {
-    if x == cols {
-        return Ok(());
-    }
-
-    for j in &choices[x] {
-        if !(&acc[..x]).contains(j) {
-            acc[x] = *j;
-            match bt(x+1, cols, t, r, acc, choices) {
-                Ok(()) => return Ok(()),
-                Err(_) => (),
-            }
-        }
-    }
-
-    anyhow::bail!("backtrack");
-}
-
 fn part2(groups: &Vec<Vec<String>>) -> anyhow::Result<u64> {
+    // Initially I did a backtracking algorithm, but it turns
+    // out that the problem is *VERY* nice and there's one column
+    // that matches one field, two columns that match two fields, etc.
+    // So I just need to find the rule with one element, put it in
+    // the right place, remove that element from other choices and repeat.
+
     let rules = parse_rules(&groups[0])?;
     let nearby_tickets = parse_nearby_tickets(&groups[2][1..])?;
     let valid_nearby_tickets = remove_invalid(&rules, nearby_tickets);
@@ -123,14 +104,22 @@ fn part2(groups: &Vec<Vec<String>>) -> anyhow::Result<u64> {
         choices.push(matching_cols);
     }
 
-    bt(
-        0,
-        cols,
-        &valid_nearby_tickets,
-        &named_rules,
-        &mut config,
-        &choices,
-    )?;
+    for _ in 0 .. cols {
+        let mut elem_to_remove = 999;
+        for (i, x) in choices.iter().enumerate() {
+            if x.len() == 1 {
+                config[i] = x[0];
+                elem_to_remove = x[0];
+                break;
+            }
+        }
+        for x in choices.iter_mut() {
+            if let Ok(i) = x.binary_search(&elem_to_remove) {
+                x.remove(i);
+            }
+        }
+    }
+
     let mut prod: u64 = 1;
     for c in &config[..6] {
         prod *= my_ticket[0][*c];
